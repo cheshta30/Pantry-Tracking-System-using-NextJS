@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { firestore } from '@/firebase';
 import { Box, Button, Modal, Stack, TextField, Typography } from '@mui/material';
 import { collection, query, getDocs, doc, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
@@ -11,7 +11,7 @@ export default function Home() {
   const [item, setItem] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredInventory, setFilteredInventory] = useState([]);
-  const [theme, setTheme] = useState('light'); // Default theme
+  const [theme, setTheme] = useState('light');
 
   const updateInventory = async () => {
     const snapshot = query(collection(firestore, 'inventory'));
@@ -24,11 +24,15 @@ export default function Home() {
       });
     });
     setInventory(inventoryList);
-    setFilteredInventory(inventoryList); // Set initial filter
-    console.log(inventoryList);
+    setFilteredInventory(inventoryList);
   };
 
   const addItem = async (item) => {
+    if (item.trim() === '') {
+      alert('Please enter an item');
+      return;
+    }
+
     const docRef = doc(collection(firestore, 'inventory'), item);
     const docSnap = await getDoc(docRef);
 
@@ -78,9 +82,13 @@ export default function Home() {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      addItem(item);
-      setItem('');
-      handleClose();
+      if (item.trim() === '') {
+        alert('Please enter an item');
+      } else {
+        addItem(item);
+        setItem('');
+        handleClose();
+      }
     }
   };
 
@@ -102,26 +110,25 @@ export default function Home() {
   };
 
   return (
-    <Box 
-      width="100vw" 
-      height="100vh" 
-      display="flex" 
-      flexDirection="column" 
-      justifyContent="center" 
-      alignItems="center" 
-      gap={2} 
-      sx={{ 
-        backgroundColor: themeStyles[theme].backgroundColor, 
-        color: themeStyles[theme].color 
+    <Box
+      width="100vw"
+      height="100vh"
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+      gap={2}
+      sx={{
+        backgroundColor: themeStyles[theme].backgroundColor,
+        color: themeStyles[theme].color
       }}
     >
-      <Button 
-        variant="contained" 
-        onClick={toggleTheme} 
+      <Button
+        variant="contained"
+        onClick={toggleTheme}
         sx={{ position: 'absolute', top: 16, right: 16 }}
-        // color={theme === 'light' ? 'default' : 'inherit'}
       >
-        Light/Dark Mode
+        {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
       </Button>
       <Modal open={open} onClose={handleClose}>
         <Box
@@ -145,14 +152,18 @@ export default function Home() {
               fullWidth
               value={item}
               onChange={(e) => setItem(e.target.value)}
-              onKeyDown={handleKeyDown} 
+              onKeyDown={handleKeyDown}
             />
             <Button
               variant="outlined"
               onClick={() => {
-                addItem(item);
-                setItem('');
-                handleClose();
+                if (item.trim() === '') {
+                  alert('Please enter an item');
+                } else {
+                  addItem(item);
+                  setItem('');
+                  handleClose();
+                }
               }}
             >
               Add
@@ -160,20 +171,7 @@ export default function Home() {
           </Stack>
         </Box>
       </Modal>
-      <Typography
-        variant='h1'
-        sx={{
-          mb: 4,
-          textAlign: 'center',
-          color: themeStyles[theme].color,
-          fontWeight: 'bold',
-          fontSize: '2.5rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-        }}
-      >
-        Welcome to Pantry Tracking System
-      </Typography>
+      <Typography variant="h3">Welcome to Pantry Tracking System</Typography>
       <TextField
         variant="outlined"
         label="Search items"
@@ -182,7 +180,6 @@ export default function Home() {
         sx={{ mb: 2, borderColor: themeStyles[theme].borderColor }}
       />
       <Button variant="contained" onClick={handleOpen}>Add new item</Button>
-      
       <Box border={`1px solid ${themeStyles[theme].borderColor}`} mt={2} width="800px">
         <Box
           width="100%"
